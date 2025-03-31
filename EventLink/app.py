@@ -36,6 +36,8 @@ def home():
     events = cursor.fetchall()
     return render_template('home.html', events=events)
 
+@app.route('/register, methods=['GET, 'POST']')
+
 # shema baze
 def create_schema_file():
     schema = '''
