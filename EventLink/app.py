@@ -1,6 +1,8 @@
-from flask import Flask, request, g, render_template
+from flask import Flask, render_template, request, redirect, url_for, flash, session, g
 import sqlite3
 import os
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'Adolf'
@@ -36,7 +38,47 @@ def home():
     events = cursor.fetchall()
     return render_template('home.html', events=events)
 
-@app.route('/register, methods=['GET, 'POST']')
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+        gender = request.form['gender']
+        religion = request.form['religion']
+        race = request.form['race']
+        
+        # preverjanje, ali so vsi podatki vneseni
+        if not username or not email or not password or not gender or not religion or not race:
+            flash('Vsa polja so obvezna!', 'danger')
+            return render_template('register.html')
+        
+        # preverjanje, ali se gesli ujemata
+        if password != confirm_password:
+            flash('Gesli se ne ujemata!', 'danger')
+            return render_template('register.html')
+        
+        db = get_db()
+        # preverjanje, ali uporabnik že obstaja
+        cursor = db.execute('SELECT * FROM users WHERE email = ?', (email,))
+        existing_user = cursor.fetchone()
+        if existing_user:
+            flash('Uporabnik s tem e-poštnim naslovom že obstaja!', 'danger')
+            return render_template('register.html')
+        
+        # ustvarjanje novega uporabnika
+        hashed_password = generate_password_hash(password)
+        try:
+            db.execute('INSERT INTO users (username, email, password, gender, religion, race, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                      (username, email, hashed_password, gender, religion, race, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            db.commit()
+            flash('Registracija uspešna! Zdaj se lahko prijavite.', 'success')
+            return redirect(url_for('login'))
+        except:
+            flash('Napaka pri registraciji. Poskusite znova.', 'danger')
+    
+    return render_template('register.html')
 
 # shema baze
 def create_schema_file():
@@ -50,6 +92,9 @@ def create_schema_file():
         username TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
+        gender TEXT NOT NULL,
+        religion TEXT NOT NULL,
+        race TEXT NOT NULL,
         created_at TEXT NOT NULL
     );
     

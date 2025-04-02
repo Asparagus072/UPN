@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">Registracija</h3>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+                    
+                    <form method="POST" action="{{ url_for('register') }}">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Uporabniško ime</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">E-pošta</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Geslo</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Potrdi geslo</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        </div>
+                        
+                        <!-- Novo polje: Spol -->
+                        <div class="mb-3">
+                            <label for="gender" class="form-label">Spol</label>
+                            <select class="form-select" id="gender" name="gender" required>
+                                <option value="" selected disabled>Izberi spol</option>
+                                <option value="moski">Moški</option>
+                                <option value="zenska">Ženska</option>
+                                <option value="drugo">Drugo</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Novo polje: Vera -->
+                        <div class="mb-3">
+                            <label for="religion" class="form-label">Vera</label>
+                            <select class="form-select" id="religion" name="religion" required>
+                                <option value="" selected disabled>Izberi vero</option>
+                                <option value="kristjan">Kristjan</option>
+                                <option value="musliman">Musliman</option>
+                                <option value="budist">Budist</option>
+                                <option value="protestant">Protestant</option>
+                                <option value="ateist">Ateist</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Novo polje: Rasa -->
+                        <div class="mb-3">
+                            <label for="race" class="form-label">Rasa</label>
+                            <select class="form-select" id="race" name="race" required>
+                                <option value="" selected disabled>Izberi raso</option>
+                                <option value="belc">Belec</option>
+                                <option value="crnc">Črnec</option>
+                                <option value="azijc">Azijec</option>
+                                <option value="indijc">Indijec</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Registriraj se</button>
+                        </div>
+                    </form>
+                    <div class="mt-3 text-center">
+                        <p>Že imaš račun? <a href="{{ url_for('login') }}">Prijavi se</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
