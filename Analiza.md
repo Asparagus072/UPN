@@ -12,3 +12,11 @@ Ali imaš kakšno zabavo? Ali ne veš kako jo publicirati? Ali bi rad da na zaba
 ## Rešitev
 
 naj te ne skrbi z aplikacijo EventLink lahko objaviš svojo zabavo, dogodek, ki bodo prišli le ljudi katerih si ti želiš.
+
+## Uporabniki
+
+Aplikacijo lahko uparibjo in mladoletniki ter upokojenci, torej ni omejena. 
+
+## Raznolikost
+
+Aplikacija je drugačna od drugih, saj lahko sam izbereš katere rase ljudi si ti želiš, da se prijavijo.
