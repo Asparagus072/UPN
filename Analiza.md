@@ -15,7 +15,7 @@ naj te ne skrbi z aplikacijo EventLink lahko objaviš svojo zabavo, dogodek, ki 
 
 ## Uporabniki
 
-Aplikacijo lahko uparibjo in mladoletniki ter upokojenci, torej ni omejena. 
+Aplikacijo lahko uparibjo in mladoletniki ter upokojenci, torej **ni omejena**. 
 
 ## Raznolikost
 
