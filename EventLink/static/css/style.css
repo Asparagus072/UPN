@@ -1,0 +1,67 @@
+/* Splošni stili */
+body {
+    font-family: 'Arial', sans-serif;
+    padding-bottom: 50px;
+}
+
+/* Stili za kartice z dogodki */
+.card {
+    transition: transform 0.3s ease;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-title {
+    color: #0d6efd;
+}
+
+/* Stili za gumb */
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+/* Stili za jumbotron */
+.jumbotron {
+    padding: 2rem;
+    border-radius: 10px;
+    background-color: #f8f9fa;
+}
+
+/* Stili za navigacijo */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Stili za noge strani */
+footer {
+    position: relative;
+    margin-top: 2rem;
+    width: 100%;
+}
+
+/* Stili za obvestila */
+.alert {
+    border-radius: 8px;
+}
+
+/* Stili za obrazce */
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Stili za naslove */
+h1, h2, h3, h4 {
+    margin-bottom: 1.5rem;
+    color: #343a40;
+}

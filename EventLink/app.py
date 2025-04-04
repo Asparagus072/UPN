@@ -44,7 +44,7 @@ def register():
         username = request.form['username']
         email = request.form['email']
         password = request.form['password']
-        confirm_password = request.form['confirm_password']
+        confirm_password = request.form['confirm_password']  
         gender = request.form['gender']
         religion = request.form['religion']
         race = request.form['race']
@@ -79,6 +79,31 @@ def register():
             flash('Napaka pri registraciji. Poskusite znova.', 'danger')
     
     return render_template('register.html')
+
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        login_id = request.form['login_id']  
+        password = request.form['password']
+        
+        db = get_db()
+        # preverimo, če je vnos e-poštni naslov ali uporabniško ime
+        cursor = db.execute('SELECT * FROM users WHERE email = ? OR username = ?', (login_id, login_id))
+        user = cursor.fetchone()
+        
+        if not user or not check_password_hash(user['password'], password):
+            flash('Napačen e-poštni naslov/uporabniško ime ali geslo!', 'danger')
+            return render_template('login.html')
+        
+        # Uspešna prijava
+        session['user_id'] = user['id']
+        session['username'] = user['username']
+        flash(f'Dobrodošli, {user["username"]}!', 'success')
+        return redirect(url_for('home'))
+    
+    return render_template('login.html')
 
 # shema baze
 def create_schema_file():
