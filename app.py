@@ -151,6 +151,17 @@ def create_schema_file():
         
     if not os.path.exists(DATABASE):
         init_db()
+        
+@app.route('/reset_db')
+def reset_db():
+    """Admin route to reset the database - use with caution!"""
+    if os.path.exists(DATABASE):
+        os.remove(DATABASE)
+    create_schema_file()
+    init_db()
+    flash('Database reset successfully!', 'success')
+    return redirect(url_for('home'))
+
 
 if __name__ == '__main__':
     create_schema_file()
