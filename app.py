@@ -48,9 +48,10 @@ def register():
         gender = request.form['gender']
         religion = request.form['religion']
         race = request.form['race']
+        date_of_birth = request.form['date_of_birth']
         
         # preverjanje, ali so vsi podatki vneseni
-        if not username or not email or not password or not gender or not religion or not race:
+        if not username or not email or not password or not gender or not religion or not race or not date_of_birth:
             flash('Vsa polja so obvezna!', 'danger')
             return render_template('register.html')
         
@@ -70,13 +71,14 @@ def register():
         # ustvarjanje novega uporabnika
         hashed_password = generate_password_hash(password)
         try:
-            db.execute('INSERT INTO users (username, email, password, gender, religion, race, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                      (username, email, hashed_password, gender, religion, race, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            db.execute('INSERT INTO users (username, email, password, gender, religion, race, date_of_birth, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                      (username, email, hashed_password, gender, religion, race, date_of_birth, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
             db.commit()
             flash('Registracija uspešna! Zdaj se lahko prijavite.', 'success')
             return redirect(url_for('login'))
-        except:
-            flash('Napaka pri registraciji. Poskusite znova.', 'danger')
+        except Exception as e:
+            flash(f'Napaka pri registraciji: {str(e)}. Poskusite znova.', 'danger')
+            print(f"Database error: {str(e)}")
     
     return render_template('register.html')
 
@@ -120,6 +122,7 @@ def create_schema_file():
         gender TEXT NOT NULL,
         religion TEXT NOT NULL,
         race TEXT NOT NULL,
+        date_of_birth TEXT NOT NULL,
         created_at TEXT NOT NULL
     );
     

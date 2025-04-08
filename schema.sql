@@ -11,6 +11,7 @@
         gender TEXT NOT NULL,
         religion TEXT NOT NULL,
         race TEXT NOT NULL,
+        date_of_birth TEXT NOT NULL,
         created_at TEXT NOT NULL
     );
     
