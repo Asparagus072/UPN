@@ -82,8 +82,6 @@ def register():
     
     return render_template('register.html')
 
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -106,6 +104,64 @@ def login():
         return redirect(url_for('home'))
     
     return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    # Clear the session
+    session.pop('user_id', None)
+    session.pop('username', None)
+    flash('Uspešno ste se odjavili!', 'success')
+    return redirect(url_for('home'))
+
+@app.route('/profile', methods=['GET'])
+def profile():
+    if 'user_id' not in session:
+        flash('Za dostop do profila se morate prijaviti!', 'danger')
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    db = get_db()
+    cursor = db.execute('SELECT * FROM users WHERE id = ?', (user_id,))
+    user = cursor.fetchone()
+    
+    return render_template('profile.html', user=user)
+
+@app.route('/delete_account', methods=['POST'])
+def delete_account():
+    if 'user_id' not in session:
+        flash('Za izbris računa se morate prijaviti!', 'danger')
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    db = get_db()
+    
+    try:
+        # First delete user's event registrations
+        db.execute('DELETE FROM registrations WHERE user_id = ?', (user_id,))
+        
+        # Check if user is an organizer of any events
+        cursor = db.execute('SELECT COUNT(*) as count FROM events WHERE organizer_id = ?', (user_id,))
+        event_count = cursor.fetchone()['count']
+        
+        if event_count > 0:
+            flash('Ne morete izbrisati računa, ker ste organizator dogodkov!', 'danger')
+            return redirect(url_for('profile'))
+        
+        # Delete the user
+        db.execute('DELETE FROM users WHERE id = ?', (user_id,))
+        db.commit()
+        
+        # Clear session
+        session.pop('user_id', None)
+        session.pop('username', None)
+        
+        flash('Vaš račun je bil uspešno izbrisan!', 'success')
+        return redirect(url_for('home'))
+    
+    except Exception as e:
+        db.rollback()
+        flash(f'Napaka pri brisanju računa: {str(e)}', 'danger')
+        return redirect(url_for('profile'))
 
 # shema baze
 def create_schema_file():
