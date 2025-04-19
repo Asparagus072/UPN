@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Uredi profil{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Uredi profil</h3>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}" role="alert">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <form method="POST" action="{{ url_for('edit_profile') }}">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Uporabniško ime</label>
+                            <input type="text" class="form-control" id="username" name="username" value="{{ user['username'] }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">E-pošta</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ user['email'] }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="date_of_birth" class="form-label">Datum rojstva</label>
+                            <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ user['date_of_birth'] }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="gender" class="form-label">Spol</label>
+                            <select class="form-select" id="gender" name="gender" required>
+                                <option value="moski" {% if user['gender'] == 'moski' %}selected{% endif %}>Moški</option>
+                                <option value="zenska" {% if user['gender'] == 'zenska' %}selected{% endif %}>Ženska</option>
+                                <option value="drugo" {% if user['gender'] == 'drugo' %}selected{% endif %}>Drugo</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="religion" class="form-label">Vera</label>
+                            <select class="form-select" id="religion" name="religion" required>
+                                <option value="kristjan" {% if user['religion'] == 'kristjan' %}selected{% endif %}>Kristjan</option>
+                                <option value="musliman" {% if user['religion'] == 'musliman' %}selected{% endif %}>Musliman</option>
+                                <option value="budist" {% if user['religion'] == 'budist' %}selected{% endif %}>Budist</option>
+                                <option value="protestant" {% if user['religion'] == 'protestant' %}selected{% endif %}>Protestant</option>
+                                <option value="ateist" {% if user['religion'] == 'ateist' %}selected{% endif %}>Ateist</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="race" class="form-label">Rasa</label>
+                            <select class="form-select" id="race" name="race" required>
+                                <option value="belc" {% if user['race'] == 'belc' %}selected{% endif %}>Belec</option>
+                                <option value="crnc" {% if user['race'] == 'crnc' %}selected{% endif %}>Črnec</option>
+                                <option value="azijc" {% if user['race'] == 'azijc' %}selected{% endif %}>Azijec</option>
+                                <option value="indijc" {% if user['race'] == 'indijc' %}selected{% endif %}>Indijec</option>
+                            </select>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h4 class="mt-4 mb-3">Spremeni geslo (neobvezno)</h4>
+                        
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Trenutno geslo</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password">
+                            <div class="form-text">Izpolnite samo, če želite spremeniti geslo.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">Novo geslo</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Potrdi novo geslo</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('profile') }}" class="btn btn-secondary">Prekliči</a>
+                            <button type="submit" class="btn btn-primary">Shrani spremembe</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

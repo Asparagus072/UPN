@@ -163,6 +163,94 @@ def delete_account():
         flash(f'Napaka pri brisanju računa: {str(e)}', 'danger')
         return redirect(url_for('profile'))
 
+@app.route('/edit_profile', methods=['GET', 'POST'])
+def edit_profile():
+    if 'user_id' not in session:
+        flash('Za urejanje profila se morate prijaviti!', 'danger')
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    db = get_db()
+    
+    if request.method == 'POST':
+        # data
+        username = request.form['username']
+        email = request.form['email']
+        gender = request.form['gender']
+        religion = request.form['religion']
+        race = request.form['race']
+        date_of_birth = request.form['date_of_birth']
+        current_password = request.form.get('current_password', '')
+        new_password = request.form.get('new_password', '')
+        confirm_password = request.form.get('confirm_password', '')
+        
+        # preveri ali so zapolnjeni
+        if not username or not email or not gender or not religion or not race or not date_of_birth:
+            flash('Vsa polja so obvezna!', 'danger')
+            return redirect(url_for('edit_profile'))
+        
+        # pridobivanje uporabnika
+        cursor = db.execute('SELECT * FROM users WHERE id = ?', (user_id,))
+        user = cursor.fetchone()
+        
+        # preveri mail
+        if email != user['email']:
+            cursor = db.execute('SELECT * FROM users WHERE email = ? AND id != ?', (email, user_id))
+            existing_user = cursor.fetchone()
+            if existing_user:
+                flash('E-poštni naslov je že v uporabi!', 'danger')
+                return redirect(url_for('edit_profile'))
+        
+        try:
+            # ce zelis zamenjati geslo
+            if current_password and new_password:
+                # Verify current password
+                if not check_password_hash(user['password'], current_password):
+                    flash('Trenutno geslo ni pravilno!', 'danger')
+                    return redirect(url_for('edit_profile'))
+                
+                # prevera gesla
+                if new_password != confirm_password:
+                    flash('Novi gesli se ne ujemata!', 'danger')
+                    return redirect(url_for('edit_profile'))
+                
+                # posodobi uporabnika z geslom
+                hashed_password = generate_password_hash(new_password)
+                db.execute('''
+                    UPDATE users 
+                    SET username = ?, email = ?, gender = ?, religion = ?, race = ?, 
+                        date_of_birth = ?, password = ?
+                    WHERE id = ?
+                ''', (username, email, gender, religion, race, date_of_birth, hashed_password, user_id))
+            else:
+                # posodobi uporabnika brez gesla
+                db.execute('''
+                    UPDATE users 
+                    SET username = ?, email = ?, gender = ?, religion = ?, race = ?, date_of_birth = ?
+                    WHERE id = ?
+                ''', (username, email, gender, religion, race, date_of_birth, user_id))
+            
+            db.commit()
+            
+            # posodobi ce se ime zamenja
+            if username != session['username']:
+                session['username'] = username
+                
+            flash('Profil uspešno posodobljen!', 'success')
+            return redirect(url_for('profile'))
+            
+        except Exception as e:
+            db.rollback()
+            flash(f'Napaka pri posodabljanju profila: {str(e)}', 'danger')
+            return redirect(url_for('edit_profile'))
+    
+    # GET request - show form with current data
+    cursor = db.execute('SELECT * FROM users WHERE id = ?', (user_id,))
+    user = cursor.fetchone()
+    
+    return render_template('edit_profile.html', user=user)
+
+
 # shema baze
 def create_schema_file():
     schema = '''
