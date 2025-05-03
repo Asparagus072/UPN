@@ -11,7 +11,7 @@
     {% if 'user_id' not in session %}
     <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Registriraj se zdaj</a>
     {% else %}
-    <a href="#" class="btn btn-success btn-lg">Ustvari dogodek</a>
+    <a href="{{url_for('create_event')}}" class="btn btn-success btn-lg">Ustvari dogodek</a>
     {% endif %}
 </div>
 

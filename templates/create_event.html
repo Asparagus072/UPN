@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Ustvari nov dogodek{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <div class="card shadow-sm border-0 animate__animated animate__fadeIn">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0 nasl">
+                    <i class="fas fa-calendar-plus me-2"></i>Ustvari nov dogodek
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('create_event') }}">
+                    <!-- Osnovni podatki -->
+                    <h5 class="text-primary mb-3">Osnovni podatki dogodka</h5>
+                    
+                    <!-- Naslov dogodka -->
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Naslov dogodka</label>
+                        <input type="text" class="form-control" id="title" name="title" required
+                               placeholder="Vnesite naslov dogodka" maxlength="100">
+                        <small class="text-muted">Kratek in jedrnat naslov dogodka (max. 100 znakov)</small>
+                    </div>
+                    
+                    <!-- Opis dogodka -->
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Opis dogodka</label>
+                        <textarea class="form-control" id="description" name="description" rows="5" required
+                                  placeholder="Podroben opis dogodka..."></textarea>
+                        <small class="text-muted">Podrobnosti o dogodku, vključno s programom, pogoji udeležbe itd.</small>
+                    </div>
+                    
+                    <!-- Datum in čas -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="date" class="form-label">Datum</label>
+                            <input type="date" class="form-control" id="date" name="date" required>
+                            <small class="text-muted">Datum izvedbe dogodka</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="time" class="form-label">Čas</label>
+                            <input type="time" class="form-control" id="time" name="time" required>
+                            <small class="text-muted">Čas začetka dogodka</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Lokacija -->
+                    <div class="mb-4">
+                        <label for="location" class="form-label">Lokacija</label>
+                        <input type="text" class="form-control" id="location" name="location" required
+                               placeholder="Naslov lokacije dogodka">
+                        <small class="text-muted">Polni naslov lokacije dogodka</small>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Ciljne skupine -->
+                    <h5 class="text-primary mb-3">Ciljne skupine</h5>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Z izbiro ciljnih skupin določite, za koga je dogodek namenjen. Če polje pustite prazno, je dogodek namenjen vsem.
+                    </div>
+                    
+                    <!-- Starostna skupina -->
+                    <div class="mb-3">
+                        <label class="form-label">Starostna skupina</label>
+                        <div class="form-check">
+                            <input type="radio" id="age_all" name="target_age_group" value="all" class="form-check-input" checked>
+                            <label class="form-check-label" for="age_all">Za vse starosti</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="radio" id="age_adults" name="target_age_group" value="adults" class="form-check-input">
+                            <label class="form-check-label" for="age_adults">Samo za odrasle (18+)</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="radio" id="age_minors" name="target_age_group" value="minors" class="form-check-input">
+                            <label class="form-check-label" for="age_minors">Samo za mladoletnike</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Verske skupine -->
+                    <div class="mb-3">
+                        <label class="form-label">Dogodek je namenjen določenim verskim skupinam</label>
+                        <div class="row">
+                            {% for religion in religions %}
+                            <div class="col-md-4 mb-2">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input religion-checkbox" 
+                                           id="religion_{{ loop.index }}" name="target_religions" value="{{ religion }}">
+                                    <label class="form-check-label" for="religion_{{ loop.index }}">{{ religion }}</label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="form-text mt-2">
+                            <span class="text-danger religion-warning d-none">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                Izbrane verske skupine bodo lahko prikazane z rdečo črto za tiste, ki jim dogodek ni namenjen!
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Etnične skupine -->
+                    <div class="mb-4">
+                        <label class="form-label">Dogodek je namenjen določenim etničnim skupinam</label>
+                        <div class="row">
+                            {% for race in races %}
+                            <div class="col-md-4 mb-2">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input race-checkbox" 
+                                           id="race_{{ loop.index }}" name="target_races" value="{{ race }}">
+                                    <label class="form-check-label" for="race_{{ loop.index }}">{{ race }}</label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="form-text mt-2">
+                            <span class="text-danger race-warning d-none">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                Izbrane etnične skupine bodo lahko prikazane z rdečo črto za tiste, ki jim dogodek ni namenjen!
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Gumbi -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('home') }}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times me-1"></i>Prekliči
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Ustvari dogodek
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Preveri, da je datum v prihodnosti
+        const dateInput = document.getElementById('date');
+        
+        if (dateInput) {
+            // Nastavi minimalni datum na današnji datum
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.setAttribute('min', today);
+            
+            // Dodaj tooltip
+            dateInput.setAttribute('title', 'Datum mora biti v prihodnosti');
+            dateInput.setAttribute('data-bs-toggle', 'tooltip');
+            dateInput.setAttribute('data-bs-placement', 'top');
+            
+            // Inicializiraj tooltip
+            try {
+                new bootstrap.Tooltip(dateInput);
+            } catch (e) {
+                console.warn('Bootstrap Tooltip ni na voljo:', e);
+            }
+        }
+        
+        // Prikaz opozorila ob izbiri demografskih skupin
+        const religionCheckboxes = document.querySelectorAll('.religion-checkbox');
+        const religionWarning = document.querySelector('.religion-warning');
+        
+        religionCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // Preveri, če je vsaj en checkbox označen
+                const anyChecked = Array.from(religionCheckboxes).some(cb => cb.checked);
+                
+                if (anyChecked) {
+                    religionWarning.classList.remove('d-none');
+                } else {
+                    religionWarning.classList.add('d-none');
+                }
+            });
+        });
+        
+        // Prikaz opozorila ob izbiri etničnih skupin
+        const raceCheckboxes = document.querySelectorAll('.race-checkbox');
+        const raceWarning = document.querySelector('.race-warning');
+        
+        raceCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // Preveri, če je vsaj en checkbox označen
+                const anyChecked = Array.from(raceCheckboxes).some(cb => cb.checked);
+                
+                if (anyChecked) {
+                    raceWarning.classList.remove('d-none');
+                } else {
+                    raceWarning.classList.add('d-none');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

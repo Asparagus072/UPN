@@ -1,3 +1,8 @@
+/**
+ * EventLink - glavna JavaScript datoteka
+ * Vsebuje funkcionalnosti za animacije, validacije in interakcije uporabniških vmesnikov
+ */
+
 document.addEventListener('DOMContentLoaded', function() {
     // Animate cards on hover
     const eventCards = document.querySelectorAll('.card');
@@ -35,42 +40,44 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Form validation for registration and profile editing
-    const passwordFields = document.querySelectorAll('input[type="password"]');
     const passwordForm = document.querySelector('form');
     
-    if (passwordForm && passwordFields.length >= 2) {
-        passwordForm.addEventListener('submit', function(event) {
-            const passwordField = document.getElementById('password') || document.getElementById('new_password');
-            const confirmField = document.getElementById('confirm_password');
-            
-            if (passwordField && confirmField && passwordField.value && confirmField.value) {
-                if (passwordField.value !== confirmField.value) {
-                    event.preventDefault();
-                    
-                    // Create password mismatch alert
-                    const alertDiv = document.createElement('div');
-                    alertDiv.className = 'alert alert-danger';
-                    alertDiv.textContent = 'Gesli se ne ujemata!';
-                    alertDiv.role = 'alert';
-                    
-                    // Insert alert before form
-                    this.parentNode.insertBefore(alertDiv, this);
-                    
-                    // Highlight password fields
-                    passwordField.classList.add('is-invalid');
-                    confirmField.classList.add('is-invalid');
-                    
-                    // Auto-dismiss alert after 5 seconds
-                    setTimeout(() => {
-                        alertDiv.style.opacity = '0';
-                        alertDiv.style.transition = 'opacity 0.5s ease';
+    if (passwordForm) {
+        // Preveri, če obrazec vsebuje polja za geslo
+        const passwordField = document.getElementById('password') || document.getElementById('new_password');
+        const confirmField = document.getElementById('confirm_password');
+        
+        if (passwordField && confirmField) {
+            passwordForm.addEventListener('submit', function(event) {
+                if (passwordField.value && confirmField.value) {
+                    if (passwordField.value !== confirmField.value) {
+                        event.preventDefault();
+                        
+                        // Create password mismatch alert
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-danger';
+                        alertDiv.textContent = 'Gesli se ne ujemata!';
+                        alertDiv.role = 'alert';
+                        
+                        // Insert alert before form
+                        this.parentNode.insertBefore(alertDiv, this);
+                        
+                        // Highlight password fields
+                        passwordField.classList.add('is-invalid');
+                        confirmField.classList.add('is-invalid');
+                        
+                        // Auto-dismiss alert after 5 seconds
                         setTimeout(() => {
-                            alertDiv.remove();
-                        }, 500);
-                    }, 5000);
+                            alertDiv.style.opacity = '0';
+                            alertDiv.style.transition = 'opacity 0.5s ease';
+                            setTimeout(() => {
+                                alertDiv.remove();
+                            }, 500);
+                        }, 5000);
+                    }
                 }
-            }
-        });
+            });
+        }
     }
     
     // Add date validation - prevent future dates for date of birth
@@ -83,23 +90,41 @@ document.addEventListener('DOMContentLoaded', function() {
         dateOfBirthField.setAttribute('title', 'Izberite svoj datum rojstva');
         dateOfBirthField.setAttribute('data-bs-toggle', 'tooltip');
         dateOfBirthField.setAttribute('data-bs-placement', 'top');
+        
+        // Initialize tooltip for this element
+        try {
+            new bootstrap.Tooltip(dateOfBirthField);
+        } catch (e) {
+            console.warn('Bootstrap Tooltip ni na voljo, ignoriramo:', e);
+        }
     }
     
-    // Initialize all tooltips
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+    // Initialize all tooltips if Bootstrap is available
+    try {
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+            [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+        }
+    } catch (e) {
+        console.warn('Bootstrap Tooltips ni na voljo:', e);
+    }
     
     // Add smooth scrolling for navigation links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            
             const targetId = this.getAttribute('href');
+            
+            // Skip if targeting just '#'
             if (targetId === '#') return;
             
-            document.querySelector(targetId).scrollIntoView({
-                behavior: 'smooth'
-            });
+            const targetElement = document.querySelector(targetId);
+            
+            if (targetElement) {
+                e.preventDefault();
+                targetElement.scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }
         });
     });
     
@@ -137,6 +162,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Invoke the background color update function
+    updateBackgroundColor();
 });
 
 // Add dynamic background color change based on time of day
@@ -167,5 +195,4 @@ function updateBackgroundColor() {
 }
 
 // Run on page load and then every hour
-updateBackgroundColor();
 setInterval(updateBackgroundColor, 3600000); // Update every hour (3600000 ms)

@@ -250,6 +250,56 @@ def edit_profile():
     
     return render_template('edit_profile.html', user=user)
 
+@app.route('/create_event', methods=['GET', 'POST'])
+def create_event():
+    if 'user_id' not in session:
+        flash('Za ustvarjanje dogodka se morate prijaviti!', 'danger')
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        # Pridobivanje podatkov iz obrazca
+        title = request.form['title']
+        description = request.form['description']
+        date = request.form['date']
+        time = request.form['time']  # Novi parameter za čas dogodka
+        location = request.form['location']
+        organizer_id = session['user_id']
+        
+        # Preveri, če so vsi potrebni podatki vneseni
+        if not title or not description or not date or not time or not location:
+            flash('Vsa polja so obvezna!', 'danger')
+            return redirect(url_for('create_event'))
+        
+        # Združevanje datuma in časa v eno vrednost
+        event_datetime = f"{date} {time}"
+        
+        # Validacija datuma (mora biti v prihodnosti)
+        try:
+            event_date = datetime.strptime(date, '%Y-%m-%d').date()
+            if event_date < datetime.now().date():
+                flash('Datum dogodka mora biti v prihodnosti!', 'danger')
+                return redirect(url_for('create_event'))
+        except ValueError:
+            flash('Neveljaven format datuma!', 'danger')
+            return redirect(url_for('create_event'))
+        
+        db = get_db()
+        try:
+            # Vstavi nov dogodek v bazo
+            db.execute(
+                'INSERT INTO events (title, description, date, location, organizer_id, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+                (title, description, event_datetime, location, organizer_id, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            )
+            db.commit()
+            flash('Dogodek uspešno ustvarjen!', 'success')
+            return redirect(url_for('home'))
+        except Exception as e:
+            db.rollback()
+            flash(f'Napaka pri ustvarjanju dogodka: {str(e)}', 'danger')
+            return redirect(url_for('create_event'))
+    
+    # GET request - prikaži obrazec
+    return render_template('create_event.html')
 
 # shema baze
 def create_schema_file():

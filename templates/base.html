@@ -1,3 +1,11 @@
+<!-- 
+    Layout.html je samo kopija vaše osnovne HTML predloge.
+    To datoteko dodajte v vašo mapo templates/, če še ne obstaja.
+    
+    Opomba: Lahko preprosto preimenovate vašo obstoječo osnovno predlogo v layout.html,
+    ali pa ustvarite to datoteko kot povezavo do obstoječe predloge.
+-->
+
 <!DOCTYPE html>
 <html lang="sl">
 <head>
@@ -28,6 +36,13 @@
                             <i class="fas fa-home me-1"></i> Domov
                         </a>
                     </li>
+                    {% if 'user_id' in session %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('create_event') }}">
+                            <i class="fas fa-calendar-plus me-1"></i> Ustvari dogodek
+                        </a>
+                    </li>
+                    {% endif %}
                 </ul>
                 <ul class="navbar-nav ms-auto">
                     {% if 'user_id' in session %}
