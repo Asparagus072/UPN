@@ -9,6 +9,11 @@ app.secret_key = 'Adolf'
 
 DATABASE = 'eventlink.db'
 
+# Define common choices for dropdown menus
+RELIGIONS = ['Katoliška', 'Pravoslavna', 'Protestantska', 'Islam', 'Judovska', 'Hinduizem', 'Budizem', 'Ateizem', 'Drugo']
+RACES = ['Belci', 'Črnci', 'Azijci', 'Latinoameričani', 'Arabci', 'Drugo']
+AGE_GROUPS = ['all', 'adults', 'minors']
+
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
@@ -53,12 +58,12 @@ def register():
         # preverjanje, ali so vsi podatki vneseni
         if not username or not email or not password or not gender or not religion or not race or not date_of_birth:
             flash('Vsa polja so obvezna!', 'danger')
-            return render_template('register.html')
+            return render_template('register.html', religions=RELIGIONS, races=RACES)
         
         # preverjanje, ali se gesli ujemata
         if password != confirm_password:
             flash('Gesli se ne ujemata!', 'danger')
-            return render_template('register.html')
+            return render_template('register.html', religions=RELIGIONS, races=RACES)
         
         db = get_db()
         # preverjanje, ali uporabnik že obstaja
@@ -66,7 +71,7 @@ def register():
         existing_user = cursor.fetchone()
         if existing_user:
             flash('Uporabnik s tem e-poštnim naslovom že obstaja!', 'danger')
-            return render_template('register.html')
+            return render_template('register.html', religions=RELIGIONS, races=RACES)
         
         # ustvarjanje novega uporabnika
         hashed_password = generate_password_hash(password)
@@ -80,7 +85,7 @@ def register():
             flash(f'Napaka pri registraciji: {str(e)}. Poskusite znova.', 'danger')
             print(f"Database error: {str(e)}")
     
-    return render_template('register.html')
+    return render_template('register.html', religions=RELIGIONS, races=RACES)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -248,7 +253,7 @@ def edit_profile():
     cursor = db.execute('SELECT * FROM users WHERE id = ?', (user_id,))
     user = cursor.fetchone()
     
-    return render_template('edit_profile.html', user=user)
+    return render_template('edit_profile.html', user=user, religions=RELIGIONS, races=RACES)
 
 @app.route('/create_event', methods=['GET', 'POST'])
 def create_event():
@@ -261,14 +266,19 @@ def create_event():
         title = request.form['title']
         description = request.form['description']
         date = request.form['date']
-        time = request.form['time']  # Novi parameter za čas dogodka
+        time = request.form['time']
         location = request.form['location']
+        target_age_group = request.form.get('target_age_group', 'all')
         organizer_id = session['user_id']
+        
+        # Get target groups data
+        target_religions = request.form.getlist('target_religions')
+        target_races = request.form.getlist('target_races')
         
         # Preveri, če so vsi potrebni podatki vneseni
         if not title or not description or not date or not time or not location:
             flash('Vsa polja so obvezna!', 'danger')
-            return redirect(url_for('create_event'))
+            return render_template('create_event.html', religions=RELIGIONS, races=RACES)
         
         # Združevanje datuma in časa v eno vrednost
         event_datetime = f"{date} {time}"
@@ -278,70 +288,96 @@ def create_event():
             event_date = datetime.strptime(date, '%Y-%m-%d').date()
             if event_date < datetime.now().date():
                 flash('Datum dogodka mora biti v prihodnosti!', 'danger')
-                return redirect(url_for('create_event'))
+                return render_template('create_event.html', religions=RELIGIONS, races=RACES)
         except ValueError:
             flash('Neveljaven format datuma!', 'danger')
-            return redirect(url_for('create_event'))
+            return render_template('create_event.html', religions=RELIGIONS, races=RACES)
         
         db = get_db()
         try:
             # Vstavi nov dogodek v bazo
-            db.execute(
-                'INSERT INTO events (title, description, date, location, organizer_id, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-                (title, description, event_datetime, location, organizer_id, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            cursor = db.execute(
+                'INSERT INTO events (title, description, date, location, organizer_id, target_age_group, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                (title, description, event_datetime, location, organizer_id, target_age_group, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             )
+            event_id = cursor.lastrowid
+            
+            # Vstavi ciljne skupine za religijo
+            for religion in target_religions:
+                db.execute(
+                    'INSERT INTO event_target_groups (event_id, group_type, group_value) VALUES (?, ?, ?)',
+                    (event_id, 'religion', religion)
+                )
+            
+            # Vstavi ciljne skupine za rase
+            for race in target_races:
+                db.execute(
+                    'INSERT INTO event_target_groups (event_id, group_type, group_value) VALUES (?, ?, ?)',
+                    (event_id, 'race', race)
+                )
+            
             db.commit()
             flash('Dogodek uspešno ustvarjen!', 'success')
             return redirect(url_for('home'))
         except Exception as e:
             db.rollback()
             flash(f'Napaka pri ustvarjanju dogodka: {str(e)}', 'danger')
-            return redirect(url_for('create_event'))
+            return render_template('create_event.html', religions=RELIGIONS, races=RACES)
     
     # GET request - prikaži obrazec
-    return render_template('create_event.html')
+    return render_template('create_event.html', religions=RELIGIONS, races=RACES)
+
 
 # shema baze
 def create_schema_file():
-    schema = '''
-    DROP TABLE IF EXISTS users;
-    DROP TABLE IF EXISTS events;
-    DROP TABLE IF EXISTS registrations;
-    
-    CREATE TABLE users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        gender TEXT NOT NULL,
-        religion TEXT NOT NULL,
-        race TEXT NOT NULL,
-        date_of_birth TEXT NOT NULL,
-        created_at TEXT NOT NULL
-    );
-    
-    CREATE TABLE events (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        description TEXT NOT NULL,
-        date TEXT NOT NULL,
-        location TEXT NOT NULL,
-        organizer_id INTEGER NOT NULL,
-        created_at TEXT NOT NULL,
-        FOREIGN KEY (organizer_id) REFERENCES users (id)
-    );
-    
-    CREATE TABLE registrations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        event_id INTEGER NOT NULL,
-        registered_at TEXT NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users (id),
-        FOREIGN KEY (event_id) REFERENCES events (id)
-    );
-    '''
     with open('schema.sql', 'w') as f:
-        f.write(schema)
+        f.write('''
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS registrations;
+DROP TABLE IF EXISTS event_target_groups;
+
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    gender TEXT NOT NULL,
+    religion TEXT NOT NULL,
+    race TEXT NOT NULL,
+    date_of_birth TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    date TEXT NOT NULL,
+    location TEXT NOT NULL,
+    organizer_id INTEGER NOT NULL,
+    target_age_group TEXT DEFAULT 'all',
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (organizer_id) REFERENCES users (id)
+);
+
+CREATE TABLE registrations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    event_id INTEGER NOT NULL,
+    registered_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (event_id) REFERENCES events (id)
+);
+
+CREATE TABLE event_target_groups (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER NOT NULL,
+    group_type TEXT NOT NULL,  -- 'religion' or 'race'
+    group_value TEXT NOT NULL,
+    FOREIGN KEY (event_id) REFERENCES events (id)
+);
+        ''')
         
     if not os.path.exists(DATABASE):
         init_db()

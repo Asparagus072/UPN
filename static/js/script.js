@@ -99,6 +99,64 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Validate event date - ensure it's in the future (from create_event.html)
+    const dateInput = document.getElementById('date');
+    if (dateInput) {
+        // Nastavi minimalni datum na današnji datum
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.setAttribute('min', today);
+        
+        // Dodaj tooltip
+        dateInput.setAttribute('title', 'Datum mora biti v prihodnosti');
+        dateInput.setAttribute('data-bs-toggle', 'tooltip');
+        dateInput.setAttribute('data-bs-placement', 'top');
+        
+        // Inicializiraj tooltip
+        try {
+            new bootstrap.Tooltip(dateInput);
+        } catch (e) {
+            console.warn('Bootstrap Tooltip ni na voljo:', e);
+        }
+    }
+    
+    // Prikaz opozorila ob izbiri demografskih skupin (from create_event.html)
+    const religionCheckboxes = document.querySelectorAll('.religion-checkbox');
+    const religionWarning = document.querySelector('.religion-warning');
+    
+    if (religionCheckboxes.length > 0 && religionWarning) {
+        religionCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // Preveri, če je vsaj en checkbox označen
+                const anyChecked = Array.from(religionCheckboxes).some(cb => cb.checked);
+                
+                if (anyChecked) {
+                    religionWarning.classList.remove('d-none');
+                } else {
+                    religionWarning.classList.add('d-none');
+                }
+            });
+        });
+    }
+    
+    // Prikaz opozorila ob izbiri etničnih skupin (from create_event.html)
+    const raceCheckboxes = document.querySelectorAll('.race-checkbox');
+    const raceWarning = document.querySelector('.race-warning');
+    
+    if (raceCheckboxes.length > 0 && raceWarning) {
+        raceCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // Preveri, če je vsaj en checkbox označen
+                const anyChecked = Array.from(raceCheckboxes).some(cb => cb.checked);
+                
+                if (anyChecked) {
+                    raceWarning.classList.remove('d-none');
+                } else {
+                    raceWarning.classList.add('d-none');
+                }
+            });
+        });
+    }
+    
     // Initialize all tooltips if Bootstrap is available
     try {
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');

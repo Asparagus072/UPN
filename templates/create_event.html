@@ -84,7 +84,7 @@
                     <div class="mb-3">
                         <label class="form-label">Dogodek je namenjen določenim verskim skupinam</label>
                         <div class="row">
-                            {% for religion in religions %}
+                            {% for religion in ["Katoliška", "Pravoslavna", "Protestantska", "Islam", "Judovska", "Hinduizem", "Budizem", "Ateizem", "Drugo"] %}
                             <div class="col-md-4 mb-2">
                                 <div class="form-check">
                                     <input type="checkbox" class="form-check-input religion-checkbox" 
@@ -106,7 +106,7 @@
                     <div class="mb-4">
                         <label class="form-label">Dogodek je namenjen določenim etničnim skupinam</label>
                         <div class="row">
-                            {% for race in races %}
+                            {% for race in ["Belc", "Črnc", "Azijc", "Latinoameričan", "Arabc", "Drugo"] %}
                             <div class="col-md-4 mb-2">
                                 <div class="form-check">
                                     <input type="checkbox" class="form-check-input race-checkbox" 
@@ -140,65 +140,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Preveri, da je datum v prihodnosti
-        const dateInput = document.getElementById('date');
-        
-        if (dateInput) {
-            // Nastavi minimalni datum na današnji datum
-            const today = new Date().toISOString().split('T')[0];
-            dateInput.setAttribute('min', today);
-            
-            // Dodaj tooltip
-            dateInput.setAttribute('title', 'Datum mora biti v prihodnosti');
-            dateInput.setAttribute('data-bs-toggle', 'tooltip');
-            dateInput.setAttribute('data-bs-placement', 'top');
-            
-            // Inicializiraj tooltip
-            try {
-                new bootstrap.Tooltip(dateInput);
-            } catch (e) {
-                console.warn('Bootstrap Tooltip ni na voljo:', e);
-            }
-        }
-        
-        // Prikaz opozorila ob izbiri demografskih skupin
-        const religionCheckboxes = document.querySelectorAll('.religion-checkbox');
-        const religionWarning = document.querySelector('.religion-warning');
-        
-        religionCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                // Preveri, če je vsaj en checkbox označen
-                const anyChecked = Array.from(religionCheckboxes).some(cb => cb.checked);
-                
-                if (anyChecked) {
-                    religionWarning.classList.remove('d-none');
-                } else {
-                    religionWarning.classList.add('d-none');
-                }
-            });
-        });
-        
-        // Prikaz opozorila ob izbiri etničnih skupin
-        const raceCheckboxes = document.querySelectorAll('.race-checkbox');
-        const raceWarning = document.querySelector('.race-warning');
-        
-        raceCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                // Preveri, če je vsaj en checkbox označen
-                const anyChecked = Array.from(raceCheckboxes).some(cb => cb.checked);
-                
-                if (anyChecked) {
-                    raceWarning.classList.remove('d-none');
-                } else {
-                    raceWarning.classList.add('d-none');
-                }
-            });
-        });
-    });
-</script>
 {% endblock %}

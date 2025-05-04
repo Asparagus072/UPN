@@ -47,23 +47,27 @@
                         <div class="mb-3">
                             <label for="religion" class="form-label">Vera</label>
                             <select class="form-select" id="religion" name="religion" required>
-                                <option value="kristjan" {% if user['religion'] == 'kristjan' %}selected{% endif %}>Kristjan</option>
-                                <option value="musliman" {% if user['religion'] == 'musliman' %}selected{% endif %}>Musliman</option>
-                                <option value="budist" {% if user['religion'] == 'budist' %}selected{% endif %}>Budist</option>
-                                <option value="protestant" {% if user['religion'] == 'protestant' %}selected{% endif %}>Protestant</option>
-                                <option value="ateist" {% if user['religion'] == 'ateist' %}selected{% endif %}>Ateist</option>
-                                <option value="jud" {% if user['religion'] == 'jud' %}selected{% endif %}>Jud</option>
+                                <option value="katoliska" {% if user['religion'] == 'katoliska' %}selected{% endif %}>Katoliška</option>
+                                <option value="pravoslavna" {% if user['religion'] == 'pravoslavna' %}selected{% endif %}>Pravoslavna</option>
+                                <option value="protestantska" {% if user['religion'] == 'protestantska' %}selected{% endif %}>Protestantska</option>
+                                <option value="islam" {% if user['religion'] == 'islam' %}selected{% endif %}>Islam</option>
+                                <option value="judovska" {% if user['religion'] == 'judovska' %}selected{% endif %}>Judovska</option>
+                                <option value="hinduizem" {% if user['religion'] == 'hinduizem' %}selected{% endif %}>Hinduizem</option>
+                                <option value="budizem" {% if user['religion'] == 'budizem' %}selected{% endif %}>Budizem</option>
+                                <option value="ateizem" {% if user['religion'] == 'ateizem' %}selected{% endif %}>Ateizem</option>
+                                <option value="drugo" {% if user['religion'] == 'drugo' %}selected{% endif %}>Drugo</option>
                             </select>
                         </div>
                         
                         <div class="mb-3">
                             <label for="race" class="form-label">Rasa</label>
                             <select class="form-select" id="race" name="race" required>
-                                <option value="belc" {% if user['race'] == 'belc' %}selected{% endif %}>Belec</option>
-                                <option value="crnc" {% if user['race'] == 'crnc' %}selected{% endif %}>Črnec</option>
-                                <option value="azijc" {% if user['race'] == 'azijc' %}selected{% endif %}>Azijec</option>
-                                <option value="indijc" {% if user['race'] == 'indijc' %}selected{% endif %}>Indijec</option>
-                                <option value="cigan" {% if user['race'] == 'cigan' %}selected{% endif %}>Cigan</option>
+                                <option value="belc" {% if user['race'] == 'belc' %}selected{% endif %}>Belc</option>
+                                <option value="crnc" {% if user['race'] == 'crnc' %}selected{% endif %}>Črnc</option>
+                                <option value="azijc" {% if user['race'] == 'azijc' %}selected{% endif %}>Azijc</option>
+                                <option value="latinoamerican" {% if user['race'] == 'latinoamerican' %}selected{% endif %}>Latinoameričan</option>
+                                <option value="arabc" {% if user['race'] == 'arabc' %}selected{% endif %}>Arabc</option>
+                                <option value="drugo" {% if user['race'] == 'drugo' %}selected{% endif %}>Drugo</option>
                             </select>
                         </div>
                         
