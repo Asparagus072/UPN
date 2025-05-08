@@ -327,6 +327,121 @@ def create_event():
     # GET request - prikaži obrazec
     return render_template('create_event.html', religions=RELIGIONS, races=RACES)
 
+@app.route('/event/<int:event_id>')
+def event_detail(event_id):
+    if not event_id:
+        flash('Dogodek ni bil najden!', 'danger')
+        return redirect(url_for('home'))
+    
+    db = get_db()
+    
+    # Get event details
+    cursor = db.execute('SELECT e.*, u.username as organizer_name FROM events e JOIN users u ON e.organizer_id = u.id WHERE e.id = ?', (event_id,))
+    event = cursor.fetchone()
+    
+    if not event:
+        flash('Dogodek ni bil najden!', 'danger')
+        return redirect(url_for('home'))
+    
+    # Get target groups for the event
+    cursor = db.execute('SELECT group_type, group_value FROM event_target_groups WHERE event_id = ?', (event_id,))
+    target_groups = cursor.fetchall()
+    
+    # Process target groups
+    target_religions = []
+    target_races = []
+    for group in target_groups:
+        if group['group_type'] == 'religion':
+            target_religions.append(group['group_value'])
+        elif group['group_type'] == 'race':
+            target_races.append(group['group_value'])
+    
+    # Get number of registrations
+    cursor = db.execute('SELECT COUNT(*) as count FROM registrations WHERE event_id = ?', (event_id,))
+    registrations_count = cursor.fetchone()['count']
+    
+    # Check if current user is registered
+    is_registered = False
+    if 'user_id' in session:
+        cursor = db.execute('SELECT * FROM registrations WHERE user_id = ? AND event_id = ?', 
+                           (session['user_id'], event_id))
+        is_registered = cursor.fetchone() is not None
+    
+    return render_template('event_detail.html', 
+                          event=event, 
+                          target_religions=target_religions,
+                          target_races=target_races,
+                          registrations_count=registrations_count,
+                          is_registered=is_registered)
+
+@app.route('/event/<int:event_id>/register', methods=['POST'])
+def register_for_event(event_id):
+    if 'user_id' not in session:
+        flash('Za prijavo na dogodek se morate prijaviti!', 'danger')
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    db = get_db()
+    
+    # Check if event exists
+    cursor = db.execute('SELECT * FROM events WHERE id = ?', (event_id,))
+    event = cursor.fetchone()
+    if not event:
+        flash('Dogodek ne obstaja!', 'danger')
+        return redirect(url_for('home'))
+    
+    # Check if user is already registered
+    cursor = db.execute('SELECT * FROM registrations WHERE user_id = ? AND event_id = ?', 
+                       (user_id, event_id))
+    if cursor.fetchone():
+        flash('Že ste prijavljeni na ta dogodek!', 'warning')
+        return redirect(url_for('event_detail', event_id=event_id))
+    
+    # Check user eligibility based on target groups
+    cursor = db.execute('SELECT * FROM users WHERE id = ?', (user_id,))
+    user = cursor.fetchone()
+    
+    # Check age group
+    if event['target_age_group'] != 'all':
+        user_birth_date = datetime.strptime(user['date_of_birth'], '%Y-%m-%d').date()
+        user_age = (datetime.now().date() - user_birth_date).days // 365
+        
+        if (event['target_age_group'] == 'adults' and user_age < 18) or \
+           (event['target_age_group'] == 'minors' and user_age >= 18):
+            flash('Ta dogodek ni namenjen vaši starostni skupini!', 'danger')
+            return redirect(url_for('event_detail', event_id=event_id))
+         
+    
+    # Register the user
+    try:
+        db.execute('INSERT INTO registrations (user_id, event_id, registered_at) VALUES (?, ?, ?)',
+                  (user_id, event_id, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        db.commit()
+        flash('Uspešno ste se prijavili na dogodek!', 'success')
+    except Exception as e:
+        db.rollback()
+        flash(f'Napaka pri prijavi na dogodek: {str(e)}', 'danger')
+    
+    return redirect(url_for('event_detail', event_id=event_id))
+
+@app.route('/event/<int:event_id>/unregister', methods=['POST'])
+def unregister_from_event(event_id):
+    if 'user_id' not in session:
+        flash('Za odjavo od dogodka se morate prijaviti!', 'danger')
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    db = get_db()
+    
+    try:
+        db.execute('DELETE FROM registrations WHERE user_id = ? AND event_id = ?', (user_id, event_id))
+        db.commit()
+        flash('Uspešno ste se odjavili od dogodka!', 'success')
+    except Exception as e:
+        db.rollback()
+        flash(f'Napaka pri odjavi od dogodka: {str(e)}', 'danger')
+    
+    return redirect(url_for('event_detail', event_id=event_id))
 
 # shema baze
 def create_schema_file():

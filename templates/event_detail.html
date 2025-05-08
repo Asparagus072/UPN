@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ event['title'] }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 animate__animated animate__fadeIn">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0 nasl">
+                    <i class="fas fa-calendar-alt me-2"></i>{{ event['title'] }}
+                </h3>
+            </div>
+            <div class="card-body">
+                <!-- Osnovni podatki -->
+                <h5 class="text-primary mb-3"><i class="fas fa-info-circle me-2"></i>Osnovni podatki</h5>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><strong><i class="fas fa-clock me-2"></i>Datum in čas:</strong></p>
+                        <p class="ms-4">{{ event['date'] }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong><i class="fas fa-map-marker-alt me-2"></i>Lokacija:</strong></p>
+                        <p class="ms-4">{{ event['location'] }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><strong><i class="fas fa-user me-2"></i>Organizator:</strong></p>
+                        <p class="ms-4">{{ event['organizer_name'] }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong><i class="fas fa-users me-2"></i>Število prijavljenih:</strong></p>
+                        <p class="ms-4">{{ registrations_count }}</p>
+                    </div>
+                </div>
+                
+                <!-- Opis dogodka -->
+                <h5 class="text-primary mb-3"><i class="fas fa-align-left me-2"></i>Opis dogodka</h5>
+                <div class="bg-light p-3 rounded mb-4">
+                    {{ event['description'] }}
+                </div>
+                
+                <!-- Ciljne skupine -->
+                <h5 class="text-primary mb-3"><i class="fas fa-users me-2"></i>Ciljne skupine</h5>
+                
+                <!-- Starostna skupina -->
+                <div class="mb-3">
+                    <p><strong>Starostna skupina:</strong></p>
+                    <p class="ms-4">
+                        {% if event['target_age_group'] == 'all' %}
+                            <span class="badge bg-success"><i class="fas fa-check me-1"></i>Za vse starosti</span>
+                        {% elif event['target_age_group'] == 'adults' %}
+                            <span class="badge bg-warning"><i class="fas fa-user-check me-1"></i>Samo za odrasle (18+)</span>
+                        {% elif event['target_age_group'] == 'minors' %}
+                            <span class="badge bg-info"><i class="fas fa-child me-1"></i>Samo za mladoletnike</span>
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <!-- Verske skupine -->
+                {% if target_religions %}
+                <div class="mb-3">
+                    <p><strong>Priporočeno za verske skupine:</strong></p>
+                    <p class="ms-4">
+                        {% for religion in target_religions %}
+                            <span class="badge bg-primary me-1 mb-1">{{ religion }}</span>
+                        {% endfor %}
+                    </p>
+                    <small class="text-muted font-italic">*Prijava je omogočena vsem, ne glede na versko pripadnost.</small>
+                </div>
+                {% endif %}
+                
+                <!-- Etnične skupine -->
+                {% if target_races %}
+                <div class="mb-3">
+                    <p><strong>Priporočeno za etnične skupine:</strong></p>
+                    <p class="ms-4">
+                        {% for race in target_races %}
+                            <span class="badge bg-primary me-1 mb-1">{{ race }}</span>
+                        {% endfor %}
+                    </p>
+                    <small class="text-muted font-italic">*Prijava je omogočena vsem, ne glede na etnično pripadnost.</small>
+                </div>
+                {% endif %}
+                
+                <!-- Prijava/Odjava -->
+                <hr>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                    <a href="{{ url_for('home') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Nazaj
+                    </a>
+                    
+                    {% if 'user_id' in session %}
+                        {% if is_registered %}
+                            <form action="{{ url_for('unregister_from_event', event_id=event['id']) }}" method="POST">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-times-circle me-1"></i>Odjava od dogodka
+                                </button>
+                            </form>
+                        {% else %}
+                            <form action="{{ url_for('register_for_event', event_id=event['id']) }}" method="POST">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-check-circle me-1"></i>Prijava na dogodek
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt me-1"></i>Prijavi se za udeležbo
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
