@@ -335,19 +335,24 @@ def event_detail(event_id):
     
     db = get_db()
     
-    # Get event details
-    cursor = db.execute('SELECT e.*, u.username as organizer_name FROM events e JOIN users u ON e.organizer_id = u.id WHERE e.id = ?', (event_id,))
+    # Get event details + organizer username
+    cursor = db.execute(
+        'SELECT e.*, u.username as organizer_name FROM events e JOIN users u ON e.organizer_id = u.id WHERE e.id = ?', 
+        (event_id,)
+    )
     event = cursor.fetchone()
     
     if not event:
         flash('Dogodek ni bil najden!', 'danger')
         return redirect(url_for('home'))
+
+    # Preveri, če je trenutni uporabnik organizator
+    is_organizer = 'user_id' in session and session['user_id'] == event['organizer_id']
     
-    # Get target groups for the event
+    # ciljne skupine
     cursor = db.execute('SELECT group_type, group_value FROM event_target_groups WHERE event_id = ?', (event_id,))
     target_groups = cursor.fetchall()
     
-    # Process target groups
     target_religions = []
     target_races = []
     for group in target_groups:
@@ -356,23 +361,28 @@ def event_detail(event_id):
         elif group['group_type'] == 'race':
             target_races.append(group['group_value'])
     
-    # Get number of registrations
+    # Število prijav
     cursor = db.execute('SELECT COUNT(*) as count FROM registrations WHERE event_id = ?', (event_id,))
     registrations_count = cursor.fetchone()['count']
     
-    # Check if current user is registered
+    #is user in session
     is_registered = False
     if 'user_id' in session:
-        cursor = db.execute('SELECT * FROM registrations WHERE user_id = ? AND event_id = ?', 
-                           (session['user_id'], event_id))
+        cursor = db.execute(
+            'SELECT * FROM registrations WHERE user_id = ? AND event_id = ?', 
+            (session['user_id'], event_id)
+        )
         is_registered = cursor.fetchone() is not None
     
-    return render_template('event_detail.html', 
-                          event=event, 
-                          target_religions=target_religions,
-                          target_races=target_races,
-                          registrations_count=registrations_count,
-                          is_registered=is_registered)
+    return render_template(
+        'event_detail.html', 
+        event=event, 
+        target_religions=target_religions,
+        target_races=target_races,
+        registrations_count=registrations_count,
+        is_registered=is_registered,
+        is_organizer=is_organizer 
+    )
 
 @app.route('/event/<int:event_id>/register', methods=['POST'])
 def register_for_event(event_id):
@@ -442,6 +452,96 @@ def unregister_from_event(event_id):
         flash(f'Napaka pri odjavi od dogodka: {str(e)}', 'danger')
     
     return redirect(url_for('event_detail', event_id=event_id))
+
+@app.route('/delete_event/<int:event_id>', methods=['POST'])
+def delete_event(event_id):
+    if 'user_id' not in session:
+        flash('Za brisanje dogodka se morate prijaviti!', 'danger')
+        return redirect(url_for('login'))
+    
+    db = get_db()
+    
+    # Preveri, če dogodek obstaja
+    cursor = db.execute('SELECT * FROM events WHERE id = ?', (event_id,))
+    event = cursor.fetchone()
+    
+    if not event:
+        flash('Dogodek ni bil najden!', 'danger')
+        return redirect(url_for('home'))
+    
+    # Preveri, če je uporabnik organizator dogodka
+    if session.get('user_id') != event['organizer_id']:
+        flash('Nimate dovoljenja za brisanje tega dogodka!', 'danger')
+        return redirect(url_for('event_detail', event_id=event_id))
+    
+    try:
+        # Najprej izbriši vse povezave v drugih tabelah
+        db.execute('DELETE FROM registrations WHERE event_id = ?', (event_id,))
+        db.execute('DELETE FROM event_target_groups WHERE event_id = ?', (event_id,))
+        
+        # Nato izbriši dogodek
+        db.execute('DELETE FROM events WHERE id = ?', (event_id,))
+        db.commit()
+        
+        flash('Dogodek uspešno izbrisan!', 'success')
+        return redirect(url_for('home'))
+    except Exception as e:
+        db.rollback()
+        flash(f'Napaka pri brisanju dogodka: {str(e)}', 'danger')
+        return redirect(url_for('event_detail', event_id=event_id))
+
+@app.route('/all_events')
+def all_events():
+    """Prikaži vse dogodke z možnostjo filtriranja."""
+    # Pridobivanje parametrov za filtriranje
+    search = request.args.get('search', '')
+    date_filter = request.args.get('date_filter', '')
+    age_group = request.args.get('age_group', '')
+    
+    db = get_db()
+    
+    # Osnovna poizvedba
+    query = '''
+        SELECT e.*, u.username as organizer_name, 
+        (SELECT COUNT(*) FROM registrations WHERE event_id = e.id) as registration_count
+        FROM events e
+        JOIN users u ON e.organizer_id = u.id
+        WHERE 1=1
+    '''
+    params = []
+    
+    # Dodajanje filtrov
+    if search:
+        query += ' AND e.title LIKE ?'
+        params.append(f'%{search}%')
+    
+    if date_filter:
+        query += ' AND date(e.date) >= date(?)'
+        params.append(date_filter)
+    
+    if age_group:
+        query += ' AND e.target_age_group = ?'
+        params.append(age_group)
+    
+    # Sortiranje po datumu
+    query += ' ORDER BY e.date'
+    
+    # Izvajanje poizvedbe
+    cursor = db.execute(query, params)
+    events = [dict(event) for event in cursor.fetchall()]  # Convert Row objects to dictionaries
+    
+    # Preverjanje, ali je uporabnik prijavljen na dogodke
+    user_id = session.get('user_id')
+    if user_id:
+        # Get all registrations for this user in one query
+        cursor = db.execute('SELECT event_id FROM registrations WHERE user_id = ?', (user_id,))
+        registered_events = {row['event_id'] for row in cursor.fetchall()}
+        
+        # Mark each event as registered or not
+        for event in events:
+            event['is_registered'] = event['id'] in registered_events
+    
+    return render_template('all_events.html', events=events)
 
 # shema baze
 def create_schema_file():

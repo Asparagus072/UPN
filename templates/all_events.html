@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Vsi dogodki{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0"><i class="fas fa-calendar me-2"></i>Vsi dogodki</h2>
+                {% if 'user_id' in session %}
+                <a href="{{ url_for('create_event') }}" class="btn btn-success">
+                    <i class="fas fa-calendar-plus me-1"></i>Ustvari nov dogodek
+                </a>
+                {% endif %}
+            </div>
+            <hr>
+        </div>
+    </div>
+    
+    <!-- Filteri -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtri</h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('all_events') }}" class="row g-3">
+                        <!-- Iskanje po naslovu -->
+                        <div class="col-md-4">
+                            <label for="search" class="form-label">Iskanje po naslovu</label>
+                            <input type="text" class="form-control" id="search" name="search" value="{{ request.args.get('search', '') }}">
+                        </div>
+                        
+                        <!-- Filter po datumu -->
+                        <div class="col-md-4">
+                            <label for="date_filter" class="form-label">Datum (od)</label>
+                            <input type="date" class="form-control" id="date_filter" name="date_filter" value="{{ request.args.get('date_filter', '') }}">
+                        </div>
+                        
+                        <!-- Filter po starostni skupini -->
+                        <div class="col-md-4">
+                            <label for="age_group" class="form-label">Starostna skupina</label>
+                            <select class="form-select" id="age_group" name="age_group">
+                                <option value="" {% if not request.args.get('age_group') %}selected{% endif %}>Vse starostne skupine</option>
+                                <option value="all" {% if request.args.get('age_group') == 'all' %}selected{% endif %}>Za vse starosti</option>
+                                <option value="adults" {% if request.args.get('age_group') == 'adults' %}selected{% endif %}>Samo za odrasle</option>
+                                <option value="minors" {% if request.args.get('age_group') == 'minors' %}selected{% endif %}>Samo za mladoletnike</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-1"></i>Išči
+                            </button>
+                            <a href="{{ url_for('all_events') }}" class="btn btn-secondary">
+                                <i class="fas fa-undo me-1"></i>Ponastavi filtre
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tabela dogodkov -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    {% if events %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Naslov dogodka</th>
+                                        <th>Datum in čas</th>
+                                        <th>Lokacija</th>
+                                        <th>Organizator</th>
+                                        <th>Starostna skupina</th>
+                                        <th>Št. prijavljenih</th>
+                                        <th class="text-center">Akcije</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for event in events %}
+                                    <tr>
+                                        <td><strong>{{ event['title'] }}</strong></td>
+                                        <td>{{ event['date'] }}</td>
+                                        <td>{{ event['location'] }}</td>
+                                        <td>{{ event['organizer_name'] }}</td>
+                                        <td>
+                                            {% if event['target_age_group'] == 'all' %}
+                                                <span class="badge bg-success rounded-pill">Za vse</span>
+                                            {% elif event['target_age_group'] == 'adults' %}
+                                                <span class="badge bg-warning rounded-pill">18+</span>
+                                            {% elif event['target_age_group'] == 'minors' %}
+                                                <span class="badge bg-info rounded-pill">Mladoletni</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ event['registration_count'] }}</td>
+                                        <td class="text-center">
+                                            <a href="{{ url_for('event_detail', event_id=event['id']) }}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-info-circle me-1"></i>Podrobnosti
+                                            </a>
+                                            {% if 'user_id' in session %}
+                                                {% if event['is_registered'] %}
+                                                    <form action="{{ url_for('unregister_from_event', event_id=event['id']) }}" method="POST" class="d-inline">
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                            <i class="fas fa-times-circle me-1"></i>Odjava
+                                                        </button>
+                                                    </form>
+                                                {% else %}
+                                                    <form action="{{ url_for('register_for_event', event_id=event['id']) }}" method="POST" class="d-inline">
+                                                        <button type="submit" class="btn btn-outline-success btn-sm">
+                                                            <i class="fas fa-check-circle me-1"></i>Prijava
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>Ni najdenih dogodkov, ki bi ustrezali izbranemu filtru.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

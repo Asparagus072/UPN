@@ -86,7 +86,7 @@
                 </div>
                 {% endif %}
                 
-                <!-- Prijava/Odjava -->
+                <!-- Prijava/Odjava/Brisanje -->
                 <hr>
                 <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
                     <a href="{{ url_for('home') }}" class="btn btn-secondary">
@@ -95,13 +95,13 @@
                     
                     {% if 'user_id' in session %}
                         {% if is_registered %}
-                            <form action="{{ url_for('unregister_from_event', event_id=event['id']) }}" method="POST">
+                            <form action="{{ url_for('unregister_from_event', event_id=event['id']) }}" method="POST" class="d-inline">
                                 <button type="submit" class="btn btn-danger">
                                     <i class="fas fa-times-circle me-1"></i>Odjava od dogodka
                                 </button>
                             </form>
                         {% else %}
-                            <form action="{{ url_for('register_for_event', event_id=event['id']) }}" method="POST">
+                            <form action="{{ url_for('register_for_event', event_id=event['id']) }}" method="POST" class="d-inline">
                                 <button type="submit" class="btn btn-success">
                                     <i class="fas fa-check-circle me-1"></i>Prijava na dogodek
                                 </button>
@@ -111,6 +111,15 @@
                         <a href="{{ url_for('login') }}" class="btn btn-primary">
                             <i class="fas fa-sign-in-alt me-1"></i>Prijavi se za udeležbo
                         </a>
+                    {% endif %}
+                    
+                    {% if is_organizer %}
+                        <form action="{{ url_for('delete_event', event_id=event['id']) }}" method="POST" class="d-inline ms-2">
+                            <button type="submit" class="btn btn-danger" 
+                                onclick="return confirm('Ste prepričani, da želite izbrisati ta dogodek? Tega dejanja ni mogoče razveljaviti.')">
+                                <i class="fas fa-trash-alt me-1"></i>Izbriši dogodek
+                            </button>
+                        </form>
                     {% endif %}
                 </div>
             </div>
