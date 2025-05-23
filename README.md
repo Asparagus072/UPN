@@ -6,7 +6,7 @@
 
 ## Funkcionalnosti
 
-- Ustvarjanje dogodkov (z zasebnimi ali javnimi nastavitvami)
+- Ustvarjanje dogodkov
 - Prijava na dogodke glede na interese, lokacijo, starost ipd.
 - Filtriranje in iskanje dogodkov
 
