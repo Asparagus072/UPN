@@ -23,7 +23,7 @@
 
 ## Namestitev in zagon (lokalno)
 
-- Obisces moj repozatorij ( https://github.com/Asparagus072/UPN )
-- odpres codespace ali kopiras celotno kodo. Das komando [ pip install -'Requirements.txt'. ] 
+- Obisces moj repozatorij ( https://github.com/Asparagus072/UPN ) odpres codespace ali kopiras celotno kodo.
+- Das komando [ pip install -'Requirements.txt'. ] 
 - Odpres v brskalniku ' http://127.0.0.1:5000 '. 
 - Prisli ste na spletni strani kjer se lahko prijavite in zacnete poceti kar cte.
